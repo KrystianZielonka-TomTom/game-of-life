@@ -1,19 +1,32 @@
 package org.example
 
 //With infinite map. constructor should accept initial state
-class WorldData(val width: Int, val height: Int) {
-    private val gameMap: BooleanArray = BooleanArray(width * height)
+class WorldData {
+    val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
 
-    private fun getIndex(x: Int, y: Int): Int {
-        return y * width + x
+    private fun getChunkCords(x: Int, y: Int): Pair<Int, Int> {
+        return Pair(x / SimConstants.CHUNK_SIZE, y / SimConstants.CHUNK_SIZE) //TODO
+    }
+    private fun getCordsInChunk(x: Int, y: Int): Pair<Int, Int> {
+        return Pair(x % SimConstants.CHUNK_SIZE, y % SimConstants.CHUNK_SIZE) //TODO
     }
 
     fun setState(x: Int, y: Int, state: Boolean) {
-        gameMap[getIndex(x, y)] = state
+        val (xCh, yCh) = getChunkCords(x,y)
+        val chunk = chunks.getOrPut(Pair(xCh, yCh)) {
+            return@getOrPut Chunk()
+        }
+
+        val (xIn, yIn) = getCordsInChunk(x,y)
+        chunk.setState(xIn, yIn, state)
     }
 
     fun getState(x: Int, y: Int): Boolean {
-        return gameMap[getIndex(x, y)]
+        val chPair = getChunkCords(x,y)
+        if(!chunks.containsKey(chPair))
+            return false
+        val (xIn, yIn) = getCordsInChunk(x,y)
+        return chunks[chPair]!!.getState(xIn,yIn)
     }
 
     fun getNeighboursCount(x: Int, y: Int): Int {
@@ -25,7 +38,7 @@ class WorldData(val width: Int, val height: Int) {
                 }
                 val nx = x+i
                 val ny = y+j
-                if (nx in 0 until width && ny in 0 until height && gameMap[getIndex(nx, ny)]) {
+                if (getState(nx, ny)) { //VERY SLOW!!!
                     count++
                 }
             }
@@ -34,6 +47,6 @@ class WorldData(val width: Int, val height: Int) {
     }
 
     fun clear() {
-        gameMap.fill(false)
+        chunks.clear()
     }
 }

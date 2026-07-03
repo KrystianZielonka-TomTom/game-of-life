@@ -4,13 +4,12 @@ import kotlin.system.measureTimeMillis
 
 fun main() {
     val printer = WorldPrinter()
-    val data = WorldData(32, 32)
+    val data = WorldData()
     data.setState(3, 3, true)
     data.setState(4, 3, true)
     data.setState(5, 3, true)
     data.setState(5, 2, true)
     data.setState(4, 1, true)
-    data.setState(0, 1, true)
     printer.print(data)
     val sim = Simulation(data)
 
