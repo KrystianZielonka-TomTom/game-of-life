@@ -1,14 +1,17 @@
 package org.example
 
 fun main() {
-    val data = UniverseData(32, 32)
-    data.setState(1, 1, true)
-    data.setState(1, 2, true)
-    data.setState(1, 3, true)
-    data.setState(2, 1, true)
-    data.setState(2, 2, true)
+    val printer = UniversePrinter()
+    val data = WorldData(16, 16)
+    data.setState(3, 3, true)
+    data.setState(4, 3, true)
+    data.setState(5, 3, true)
+    data.setState(5, 2, true)
+    data.setState(4, 1, true)
     data.setState(1, 0, true)
+    printer.print(data)
     val sim = Simulation(data)
     sim.step()
-    sim
+    println("Step 1")
+    printer.print(sim.data)
 }

@@ -1,10 +1,10 @@
 package org.example
 
-class Simulation(var data: UniverseData) {
+class Simulation(var data: WorldData) {
 
 
     fun step() {
-        val newData = UniverseData(data.width, data.height)
+        val newData = WorldData(data.width, data.height)
 
         data.getAliveSet().forEach { cell ->
             run {

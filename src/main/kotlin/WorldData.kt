@@ -1,7 +1,7 @@
 package org.example
 
 //With infinite map. constructor should accept initial state
-class UniverseData(val width: Int, val height: Int) {
+class WorldData(val width: Int, val height: Int) {
     private val gameMap: BooleanArray = BooleanArray(width * height)
     private val aliveSet: Set<Pair<Int, Int>> = HashSet()
     private val deadNeighboursSet: Set<Pair<Int, Int>> = HashSet()
@@ -18,9 +18,9 @@ class UniverseData(val width: Int, val height: Int) {
                 deadNeighboursSet.plus(Pair(x+i,y+j))
             }
         }
+        deadNeighboursSet.minus(Pair(x, y))
 
         //This is not that great, we have a lot of operations for just one thing that changes
-        aliveSet.minus(Pair(x,y))
     }
 
     fun getState(x: Int, y: Int): Boolean {
