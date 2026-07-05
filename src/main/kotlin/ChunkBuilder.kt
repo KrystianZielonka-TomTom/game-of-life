@@ -8,5 +8,13 @@ class ChunkBuilder {
         return this
     }
 
+    fun isEmpty(): Boolean {
+        for(cell in cells) {
+            if (cell) return false
+        }
+
+        return true
+    }
+
     fun build(): Chunk = Chunk(cells)
 }

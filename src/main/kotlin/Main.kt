@@ -6,7 +6,7 @@ fun main() {
     val printer = WorldPrinter()
 
     val worldBuilder = WorldBuilder()
-    worldBuilder.setPart(2,2,deserializeCells("""
+    worldBuilder.setPart(1,1,deserializeCells("""
             _X__
             __X_
             XXX_
@@ -15,7 +15,7 @@ fun main() {
 
     println("Sim start")
     val timeTaken = measureTimeMillis {
-        for (i in 0..30) {
+        for (i in 0..50) {
             world = Simulation.step(world)
         }
     }

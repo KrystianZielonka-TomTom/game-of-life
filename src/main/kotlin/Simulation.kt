@@ -5,53 +5,56 @@ package org.example
 object Simulation {
 
     fun step(world: WorldData) : WorldData {
-        val worldBuilder = WorldBuilder()
-
         //TODO This can be simplified if we know that alive cell is on the edge of chunk
         //     Then, only chunks that could possibly create alive cell are checked, not all of them
-        val chunksToProcess = world.chunks.keys + world.chunks.keys.flatMap { chunkNeighbours(it) }
 
+        val chunksToProcess = HashSet<Pair<Int, Int>>()
+        for (key in world.chunks.keys) {
+            chunksToProcess.add(key)
+            val x = key.first
+            val y = key.second
+            chunksToProcess.add(Pair(x-1, y-1))
+            chunksToProcess.add(Pair(x-1, y))
+            chunksToProcess.add(Pair(x-1, y+1))
+            chunksToProcess.add(Pair(x, y-1))
+            chunksToProcess.add(Pair(x, y+1))
+            chunksToProcess.add(Pair(x+1, y-1))
+            chunksToProcess.add(Pair(x+1, y))
+            chunksToProcess.add(Pair(x+1, y+1))
+        }
+
+        val resultChunks = HashMap<Pair<Int, Int>, Chunk>()
 
         for (coords in chunksToProcess) {
             val c = calcNextChunk(world, coords)
             if (c != null) {
-                val (x,y) = coords
-                worldBuilder.setChunk(x,y, c)
+                resultChunks[coords] = c
             }
         }
 
-        return worldBuilder.build()
-    }
-
-    private fun chunkNeighbours(chunkIndex: Pair<Int, Int>): List<Pair<Int, Int>> {
-        return listOf(
-            Pair(chunkIndex.first-1, chunkIndex.second-1),
-            Pair(chunkIndex.first-1, chunkIndex.second),
-            Pair(chunkIndex.first-1, chunkIndex.second+1),
-            Pair(chunkIndex.first, chunkIndex.second-1),
-            Pair(chunkIndex.first, chunkIndex.second+1),
-            Pair(chunkIndex.first+1, chunkIndex.second-1),
-            Pair(chunkIndex.first+1, chunkIndex.second),
-            Pair(chunkIndex.first+1, chunkIndex.second+1))
+        return WorldData(resultChunks)
     }
 
     private fun calcNextChunk(world: WorldData, chunkIndex: Pair<Int, Int>): Chunk? {
         val chunkBuilder = ChunkBuilder()
-        var midChunk = world.chunks[chunkIndex]
+        val midChunk = world.chunks[chunkIndex]
+        val edge = SimConstants.CHUNK_SIZE-1
+        var hasAlive = false
 
-        if (midChunk != null) {
-            //1. Check cells that are influenced only by cells in the same chunk
-            for (x in 1 until SimConstants.CHUNK_SIZE-1) {
-                for (y in 1 until SimConstants.CHUNK_SIZE-1) {
-                    chunkBuilder.set(x, y, nextState(midChunk.getState(x, y), midChunk.getNeighboursCount(x, y)))
+        for (x in 0 until SimConstants.CHUNK_SIZE) {
+            for (y in 0 until SimConstants.CHUNK_SIZE) {
+                val alive = midChunk?.getState(x,y) ?: false
+                val neighbours = if (x in 1 until edge && y in 1 until edge) {
+                    midChunk?.getNeighboursCount(x,y) ?: 0
+                } else {
+                    world.getNeighboursCount(chunkIndex.first * SimConstants.CHUNK_SIZE + x,chunkIndex.second * SimConstants.CHUNK_SIZE + y)
+                }
+                val next = nextState(alive, neighbours)
+                if (next) {
+                    chunkBuilder.set(x,y,true)
+                    hasAlive = true
                 }
             }
-        }
-
-
-        if (midChunk == null) {
-            //TODO allocating empty chunk just to later check cells in it (all are dead)
-            midChunk = ChunkBuilder().build()
         }
 
         //TODO
@@ -59,22 +62,7 @@ object Simulation {
         //However most of the time it is known what chunk needs to be checked
         //Top cells need x-1,y-1 ; x,y-1 ; x+1,y-1
         //We can simply read those chunks once at the start, instead of doing so for every cell
-
-        //2. Loop over outer edges of chunk
-        val edge = SimConstants.CHUNK_SIZE-1
-        //top, bottom
-        for (x in 0 until SimConstants.CHUNK_SIZE) {
-            chunkBuilder.set(x,0, nextState(midChunk.getState(x, 0), world.getNeighboursCount(x, 0)))
-            chunkBuilder.set(x,edge, nextState(midChunk.getState(x, edge), world.getNeighboursCount(x, edge)))
-        }
-
-        //left right
-        for (y in 1 until edge) {
-            chunkBuilder.set(0, y, nextState(midChunk.getState(0, y), world.getNeighboursCount(0, y)))
-            chunkBuilder.set(edge, y, nextState(midChunk.getState(edge, y), world.getNeighboursCount(edge, y)))
-        }
-        //TODO check if empty
-        return chunkBuilder.build()
+        return if(hasAlive) chunkBuilder.build() else null
     }
 
     private fun nextState(state: Boolean, neighbourCount: Int): Boolean {
