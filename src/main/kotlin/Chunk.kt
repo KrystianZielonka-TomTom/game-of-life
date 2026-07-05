@@ -1,33 +1,42 @@
 package org.example
 
-class Chunk {
-    private val stateData: BooleanArray = BooleanArray(SimConstants.CHUNK_SIZE * SimConstants.CHUNK_SIZE)
-    private fun getIndex(x: Int, y: Int): Int {
-        return y * SimConstants.CHUNK_SIZE + x
-    }
-
-    fun setState(x: Int, y: Int, state: Boolean) {
-        stateData[getIndex(x, y)] = state
-    }
-
+data class Chunk(private val cells: BooleanArray) {
     fun getState(x: Int, y: Int): Boolean {
-        return stateData[getIndex(x, y)]
+        return cells[y * SimConstants.CHUNK_SIZE + x]
     }
 
-//    fun getNeighboursCount(x: Int, y: Int): Int {
-//        var count = 0
-//        for(i in -1..1) {
-//            for(j in -1..1) {
-//                if (i == 0 && j == 0) {
-//                    continue
-//                }
-//                val nx = x+i
-//                val ny = y+j
-//                if (nx in 0 until width && ny in 0 until height && stateData[getIndex(nx, ny)]) {
-//                    count++
-//                }
-//            }
-//        }
-//        return count
-//    }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Chunk
+
+        return cells.contentEquals(other.cells)
+    }
+
+    override fun hashCode(): Int {
+        return cells.contentHashCode()
+    }
+
+    fun getNeighboursCount(x: Int, y: Int): Int {
+        if (!(x in 1..<SimConstants.CHUNK_SIZE-1 && y in 0..<SimConstants.CHUNK_SIZE-1)) {
+            throw IllegalArgumentException("Coordinates out of range: $x, $y. Must be in [1, ${SimConstants.CHUNK_SIZE-1})")
+        }
+        var count = 0
+        for(i in -1..1) {
+            for(j in -1..1) {
+                if (i == 0 && j == 0) {
+                    continue
+                }
+                if (getState(x+i, y+j)) {
+                    count++
+                }
+            }
+        }
+        return count
+    }
+
+    fun isEmpty(): Boolean {
+        return cells.contentEquals(cells)
+    }
 }

@@ -1,35 +1,19 @@
 package org.example
 
-import javax.swing.Spring.height
-
-//With infinite map. constructor should accept initial state
-class WorldData {
-    val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
-
+data class WorldData(val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()) {
     private fun getChunkIndex(x: Int, y: Int): Pair<Int, Int> {
         return Pair(Math.floorDiv(x, SimConstants.CHUNK_SIZE), Math.floorDiv(y, SimConstants.CHUNK_SIZE))
     }
 
     private fun getLocalCords(x: Int, y: Int): Pair<Int, Int> {
-        return Pair(x % SimConstants.CHUNK_SIZE, y % SimConstants.CHUNK_SIZE)
-    }
-
-    fun setState(x: Int, y: Int, state: Boolean) {
-        val (xCh, yCh) = getChunkIndex(x,y)
-        val chunk = chunks.getOrPut(Pair(xCh, yCh)) {
-            return@getOrPut Chunk()
-        }
-
-        val (xLocal, yLocal) = getLocalCords(x,y)
-        chunk.setState(xLocal, yLocal, state)
+        return Pair(Math.floorMod(x, SimConstants.CHUNK_SIZE), Math.floorMod(y, SimConstants.CHUNK_SIZE))
     }
 
     fun getState(x: Int, y: Int): Boolean {
         val chPair = getChunkIndex(x,y)
-        if(!chunks.containsKey(chPair))
-            return false
+        val chunk = chunks[chPair] ?: return false
         val (xLocal, yLocal) = getLocalCords(x,y)
-        return chunks[chPair]!!.getState(xLocal,yLocal)
+        return chunk.getState(xLocal,yLocal)
     }
 
     fun getPart(x: Int, y: Int, width: Int, height: Int): CellPart {
@@ -44,16 +28,11 @@ class WorldData {
         return CellPart(data, width, height)
     }
 
-    fun insertPart(x: Int, y: Int, part: CellPart) {
-        var c = 0
-        for (yi in y until y + part.height) {
-            for (xi in x until x + part.width) {
-                setState(xi,yi, part.data[c])
-                c++
-            }
-        }
-    }
 
+    /**
+     * Returns count of alive neighbors of cell given by global coordinates X and Y.
+     * For better performance use Chunk#getNeighborsCount
+     */
     fun getNeighboursCount(x: Int, y: Int): Int {
         var count = 0
         for(i in -1..1) {
@@ -61,17 +40,11 @@ class WorldData {
                 if (i == 0 && j == 0) {
                     continue
                 }
-                val nx = x+i
-                val ny = y+j
-                if (getState(nx, ny)) { //VERY SLOW!!!
+                if (getState(x+i, y+j)) { //VERY SLOW!!!
                     count++
                 }
             }
         }
         return count
-    }
-
-    fun clear() {
-        chunks.clear()
     }
 }
