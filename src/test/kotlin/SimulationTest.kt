@@ -1,14 +1,15 @@
 import org.example.Simulation
 import org.example.part.CellPart
-import org.example.world.WorldBuilder
 import org.example.world.Chunk
-import org.junit.jupiter.api.Assertions
+import org.example.world.WorldBuilder
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class SimulationTest {
 
     @Test
     fun `Glider pattern should properly change to it's second state`() {
+        //Given
         val initialPart = CellPart.deserializeCells("""
             OXOO
             OOXO
@@ -22,12 +23,14 @@ class SimulationTest {
             OXXO
             OXOO
         """.trimIndent())
-        var world = WorldBuilder().setPart(1,1, initialPart).build()
+        val initialWorld = WorldBuilder().setPart(1,1, initialPart).build()
 
-        world = Simulation.step(world)
+        //When
+        val world = Simulation.step(initialWorld)
 
+        //Then
         val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
-        Assertions.assertEquals(expectedPart, actualPart)
+        assertEquals(expectedPart, actualPart) //assertJ
     }
 
     @Test
@@ -48,7 +51,7 @@ class SimulationTest {
         world = Simulation.step(world)
 
         val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
-        Assertions.assertEquals(expectedPart, actualPart)
+        assertEquals(expectedPart, actualPart)
     }
 
     @Test
@@ -71,7 +74,7 @@ class SimulationTest {
         world = Simulation.step(world)
 
         val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
-        Assertions.assertEquals(expectedPart, actualPart)
+        assertEquals(expectedPart, actualPart)
     }
 
     @Test
@@ -91,13 +94,15 @@ class SimulationTest {
         val stepsToMoveByTwo = 8
         val expectedChunks = 3
 
-
-        for (i in 0..<stepsToMoveByTwo) {
+        //When
+        repeat (stepsToMoveByTwo) {
             world = Simulation.step(world)
         }
 
         val actualPart = world.getPart(initialX+2,initialY+2, gliderPart.width, gliderPart.height)
-        Assertions.assertEquals(gliderPart, actualPart)
-        Assertions.assertEquals(expectedChunks, world.chunks.size)
+
+        //Then
+        assertEquals(gliderPart, actualPart)
+        assertEquals(expectedChunks, world.chunks.size)
     }
 }

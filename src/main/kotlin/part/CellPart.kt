@@ -5,7 +5,7 @@ import java.io.StringReader
 
 data class CellPart(val data: BooleanArray, val width: Int, val height: Int) {
     override fun toString(): String {
-        return "CellPart(data=${serializeCells(this, 'O')})"
+        return "CellPart(data=${this.serializeCells('O')})"
     }
 
     companion object {
@@ -36,28 +36,6 @@ data class CellPart(val data: BooleanArray, val width: Int, val height: Int) {
 
             return CellPart(data.toBooleanArray(), width, height)
         }
-
-        /**
-         * Serialize CellPart into string pattern
-         */
-        fun serializeCells(part: CellPart, deadCell: Char): String {
-            val sb = StringBuilder()
-            var count = 0
-            val max = part.width * part.height
-            for (c in part.data) {
-                count++
-                if (c) {
-                    sb.append("X")
-                } else {
-                    sb.append(deadCell)
-                }
-                if (count%part.width == 0 && count < max) {
-                    sb.append('\n')
-                }
-            }
-
-            return sb.toString()
-        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -79,4 +57,26 @@ data class CellPart(val data: BooleanArray, val width: Int, val height: Int) {
         result = 31 * result + data.contentHashCode()
         return result
     }
+}
+
+/**
+ * Serialize CellPart into string pattern
+ */
+fun CellPart.serializeCells(deadCell: Char): String {
+    val sb = StringBuilder()
+    var count = 0
+    val max = this.width * this.height
+    for (c in this.data) {
+        count++
+        if (c) {
+            sb.append("X")
+        } else {
+            sb.append(deadCell)
+        }
+        if (count%this.width == 0 && count < max) {
+            sb.append('\n')
+        }
+    }
+
+    return sb.toString()
 }
