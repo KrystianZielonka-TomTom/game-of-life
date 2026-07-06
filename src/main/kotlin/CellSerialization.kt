@@ -3,6 +3,9 @@ package org.example
 import java.io.BufferedReader
 import java.io.StringReader
 
+/**
+ * Deserialize cell pattern given by X-alive (everything else is dead) to CellPart.
+ */
 fun deserializeCells(part: String): CellPart {
 
     var width = 0
@@ -34,6 +37,9 @@ fun deserializeCells(part: String): CellPart {
     return CellPart(data.toBooleanArray(), width, height)
 }
 
+/**
+ * Serialize CellPart into
+ */
 fun serializeCells(part: CellPart, deadCell: Char): String {
     val sb = StringBuilder()
     var count = 0

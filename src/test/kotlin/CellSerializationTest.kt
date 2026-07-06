@@ -7,34 +7,37 @@ import org.junit.jupiter.api.Test
 class CellSerializationTest {
 
     @Test
-    fun whenValidString_returnValidPart() {
-        val s = """
+    fun deserializeCells_whenValidString_returnValidPart() {
+        val pattern = """
             OXOO
             XOOO
             OXXO
         """.trimIndent()
-        val part = deserializeCells(s)
-        val valid = booleanArrayOf(
+        val validPattern = booleanArrayOf(
             false, true, false, false,
             true, false, false, false,
             false, true, true, false)
 
-        Assertions.assertArrayEquals(valid, part.data)
+        val part = deserializeCells(pattern)
+
+        Assertions.assertArrayEquals(validPattern, part.data)
     }
 
     @Test
-    fun whenValidPart_returnValidString() {
-        val a = booleanArrayOf(
+    fun serializeCells_whenValidPart_returnValidString() {
+        val partPattern = booleanArrayOf(
             false, true, false, false,
             true, false, false, false,
             false, true, true, false)
-        val part = CellPart(a, 4, 3)
-        val s = serializeCells(part, 'O')
-
-        Assertions.assertEquals("""
+        val part = CellPart(partPattern, 4, 3)
+        val expectedPattern = """
             OXOO
             XOOO
             OXXO
-        """.trimIndent(), s)
+        """.trimIndent()
+
+        val pattern = serializeCells(part, 'O')
+
+        Assertions.assertEquals(expectedPattern, pattern)
     }
 }

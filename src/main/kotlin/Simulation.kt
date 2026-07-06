@@ -1,18 +1,18 @@
 package org.example
 
-//TODO, just do it with functional programming
-
 object Simulation {
 
+    /**
+     * Performs game of life logic on WorldData and returns new, modified WorldData.
+     */
     fun step(world: WorldData) : WorldData {
-        //TODO This can be simplified if we know that alive cell is on the edge of chunk
-        //     Then, only chunks that could possibly create alive cell are checked, not all of them
-
         val chunksToProcess = HashSet<Pair<Int, Int>>()
+        //All neighbors of active chunk need to be evaluated as well
         for (key in world.chunks.keys) {
             chunksToProcess.add(key)
             val x = key.first
             val y = key.second
+            //Add all neighbors of middle chunk
             chunksToProcess.add(Pair(x-1, y-1))
             chunksToProcess.add(Pair(x-1, y))
             chunksToProcess.add(Pair(x-1, y+1))
@@ -41,13 +41,17 @@ object Simulation {
         val edge = SimConstants.CHUNK_SIZE-1
         var hasAlive = false
 
+        //TODO improve checking efficiency
         for (x in 0 until SimConstants.CHUNK_SIZE) {
             for (y in 0 until SimConstants.CHUNK_SIZE) {
                 val alive = midChunk?.getState(x,y) ?: false
                 val neighbours = if (x in 1 until edge && y in 1 until edge) {
                     midChunk?.getNeighboursCount(x,y) ?: 0
                 } else {
-                    world.getNeighboursCount(chunkIndex.first * SimConstants.CHUNK_SIZE + x,chunkIndex.second * SimConstants.CHUNK_SIZE + y)
+                    //Cell on the edge of chunk needs to check globally
+                    val globalX = chunkIndex.first * SimConstants.CHUNK_SIZE + x
+                    val globalY = chunkIndex.second * SimConstants.CHUNK_SIZE + y
+                    world.getNeighboursCount(globalX,globalY)
                 }
                 val next = nextState(alive, neighbours)
                 if (next) {
@@ -56,12 +60,6 @@ object Simulation {
                 }
             }
         }
-
-        //TODO
-        //This is simplification, for each cell, global coords are used to find chunk and local coords
-        //However most of the time it is known what chunk needs to be checked
-        //Top cells need x-1,y-1 ; x,y-1 ; x+1,y-1
-        //We can simply read those chunks once at the start, instead of doing so for every cell
         return if(hasAlive) chunkBuilder.build() else null
     }
 

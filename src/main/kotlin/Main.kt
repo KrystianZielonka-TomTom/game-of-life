@@ -3,7 +3,7 @@ package org.example
 import kotlin.system.measureTimeMillis
 
 fun main() {
-    val printer = WorldPrinter()
+    val printer = AsciiWorldPrinter()
 
     val worldBuilder = WorldBuilder()
     worldBuilder.setPart(1,1,deserializeCells("""
@@ -15,7 +15,7 @@ fun main() {
 
     println("Sim start")
     val timeTaken = measureTimeMillis {
-        for (i in 0..50) {
+        for (i in 0..1000) {
             world = Simulation.step(world)
         }
     }

@@ -1,14 +1,10 @@
 package org.example
 
+/**
+ * Immutable representation of all cells in game of life. World is split into chunks of size SimConstants.CHUNK_SIZE,
+ * empty chunks are disregarded. WorldData doesn't hold cell data directly, it only holds chunks that are present in world.
+ */
 data class WorldData(val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()) {
-    private fun getChunkIndex(x: Int, y: Int): Pair<Int, Int> {
-        return Pair(Math.floorDiv(x, SimConstants.CHUNK_SIZE), Math.floorDiv(y, SimConstants.CHUNK_SIZE))
-    }
-
-    private fun getLocalCords(x: Int, y: Int): Pair<Int, Int> {
-        return Pair(Math.floorMod(x, SimConstants.CHUNK_SIZE), Math.floorMod(y, SimConstants.CHUNK_SIZE))
-    }
-
     fun getState(x: Int, y: Int): Boolean {
         val chPair = getChunkIndex(x,y)
         val chunk = chunks[chPair] ?: return false

@@ -34,12 +34,4 @@ class WorldBuilder {
         chunks.forEach { (pair, builder) -> ch[pair] = builder }
         return WorldData(ch)
     }
-
-    private fun getLocalCords(x: Int, y: Int): Pair<Int, Int> {
-        return Pair(x % SimConstants.CHUNK_SIZE, y % SimConstants.CHUNK_SIZE)
-    }
-
-    private fun getChunkIndex(x: Int, y: Int): Pair<Int, Int> {
-        return Pair(Math.floorDiv(x, SimConstants.CHUNK_SIZE), Math.floorDiv(y, SimConstants.CHUNK_SIZE))
-    }
 }

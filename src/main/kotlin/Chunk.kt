@@ -1,5 +1,9 @@
 package org.example
 
+/**
+ * Chunk is what actually holds cell data. It doesn't know anything about World it is in. Any communication between chunks,
+ * should happen using WorldData.
+ */
 data class Chunk(private val cells: BooleanArray) {
     fun getState(x: Int, y: Int): Boolean {
         return cells[y * SimConstants.CHUNK_SIZE + x]
@@ -18,6 +22,9 @@ data class Chunk(private val cells: BooleanArray) {
         return cells.contentHashCode()
     }
 
+    /**
+     * Returns count of alive neighbors in this chunk. Can't see other chunks.
+     */
     fun getNeighboursCount(x: Int, y: Int): Int {
         if (!(x in 1..<SimConstants.CHUNK_SIZE-1 && y in 0..<SimConstants.CHUNK_SIZE-1)) {
             throw IllegalArgumentException("Coordinates out of range: $x, $y. Must be in [1, ${SimConstants.CHUNK_SIZE-1})")
@@ -34,9 +41,5 @@ data class Chunk(private val cells: BooleanArray) {
             }
         }
         return count
-    }
-
-    fun isEmpty(): Boolean {
-        return cells.contentEquals(cells)
     }
 }
