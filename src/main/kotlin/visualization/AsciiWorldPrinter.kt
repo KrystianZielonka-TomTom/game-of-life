@@ -1,6 +1,9 @@
-package org.example
+package org.example.visualization
 
+import org.example.world.Chunk
+import org.example.world.WorldData
 import java.io.OutputStream
+import kotlin.collections.iterator
 
 class AsciiWorldPrinter(val stream: OutputStream = System.out): WorldPrinter {
 
@@ -9,9 +12,9 @@ class AsciiWorldPrinter(val stream: OutputStream = System.out): WorldPrinter {
          for(cordsChunkPair in data.chunks) {
              println("Chunk (${cordsChunkPair.key.first}, ${cordsChunkPair.key.second})")
              val chunk = cordsChunkPair.value
-             for (y in 0 until SimConstants.CHUNK_SIZE) {
+             for (y in 0 until Chunk.CHUNK_SIZE) {
                  val s = StringBuilder("")
-                 for (x in 0 until SimConstants.CHUNK_SIZE) {
+                 for (x in 0 until Chunk.CHUNK_SIZE) {
                      s.append(if(chunk.getState(x,y)) "X" else "_")
                  }
                  s.append("\n")

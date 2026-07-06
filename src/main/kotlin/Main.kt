@@ -1,20 +1,25 @@
 package org.example
 
+import org.example.visualization.AsciiWorldPrinter
+import org.example.world.buildWorld
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 
 fun main() {
     val printer = AsciiWorldPrinter()
 
-    val worldBuilder = WorldBuilder()
+//    val worldBuilder = WorldBuilder()
 //    worldBuilder.setPart(1,1,deserializeCells("""
 //            _X__
 //            __X_
 //            XXX_
 //        """.trimIndent()))
-    worldBuilder.setRandom(1,1,32,32, Random(System.currentTimeMillis()))
-    var world = worldBuilder.build()
+//    worldBuilder.setRandom(1,1,32,32, Random(System.currentTimeMillis()))
+//    var world = worldBuilder.build()
 
+    var world = buildWorld {
+        setRandom(1,1,32,32, Random(System.currentTimeMillis()))
+    }
     println("Sim start")
     val timeTaken = measureTimeMillis {
         for (i in 0..1000) {

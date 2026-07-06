@@ -1,11 +1,12 @@
-package org.example
+package org.example.world
 
+import org.example.part.CellPart
 import kotlin.collections.HashMap
 import kotlin.random.Random
 
 class WorldBuilder {
-    val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
-    val chunkBuilders: HashMap<Pair<Int, Int>, ChunkBuilder> = HashMap()
+    private val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
+    private val chunkBuilders: HashMap<Pair<Int, Int>, ChunkBuilder> = HashMap()
 
     fun setCell(x : Int, y : Int, state: Boolean): WorldBuilder {
         val chunkCoords = getChunkIndex(x, y)
@@ -14,7 +15,7 @@ class WorldBuilder {
         return this
     }
 
-    fun setChunk(x : Int, y : Int, chunk: Chunk) : WorldBuilder {
+    internal fun setChunk(x : Int, y : Int, chunk: Chunk) : WorldBuilder {
         this.chunks[Pair(x, y)] = chunk
         return this
     }
@@ -45,4 +46,10 @@ class WorldBuilder {
         chunks.forEach { (pair, builder) -> ch[pair] = builder }
         return WorldData(ch)
     }
+}
+
+fun buildWorld(init: WorldBuilder.() -> Unit): WorldData {
+    val builder = WorldBuilder()
+    builder.init()
+    return builder.build()
 }

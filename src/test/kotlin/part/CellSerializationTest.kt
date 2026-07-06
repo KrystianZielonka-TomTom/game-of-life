@@ -1,13 +1,15 @@
-import org.example.CellPart
-import org.example.deserializeCells
-import org.example.serializeCells
+package part
+
+import org.example.part.CellPart
+import org.example.part.deserializeCells
+import org.example.part.serializeCells
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class CellSerializationTest {
 
     @Test
-    fun deserializeCells_whenValidString_returnValidPart() {
+    fun `deserializeCells should return correct cell part given valid pattern`() {
         val pattern = """
             OXOO
             XOOO
@@ -24,7 +26,7 @@ class CellSerializationTest {
     }
 
     @Test
-    fun serializeCells_whenValidPart_returnValidString() {
+    fun `serializeCells should return correct string pattern given cell part`() {
         val partPattern = booleanArrayOf(
             false, true, false, false,
             true, false, false, false,

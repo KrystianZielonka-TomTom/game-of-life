@@ -1,4 +1,4 @@
-package org.example
+package org.example.part
 
 import java.io.BufferedReader
 import java.io.StringReader
@@ -12,7 +12,7 @@ fun deserializeCells(part: String): CellPart {
     var height = 1
     val data = ArrayList<Boolean>()
     BufferedReader(StringReader(part)).use { br ->
-        var c: Int = 0
+        var c = 0
         var cols = 0
 
         while (br.read().also { c = it } != -1) {
@@ -23,13 +23,7 @@ fun deserializeCells(part: String): CellPart {
                 height++
                 continue
             }
-
-            if (c == 'X'.code) {
-                data.add(true)
-            } else {
-                data.add(false)
-            }
-
+            data.add(c == 'X'.code)
             cols++
         }
     }
@@ -38,7 +32,7 @@ fun deserializeCells(part: String): CellPart {
 }
 
 /**
- * Serialize CellPart into
+ * Serialize CellPart into string pattern
  */
 fun serializeCells(part: CellPart, deadCell: Char): String {
     val sb = StringBuilder()

@@ -1,26 +1,26 @@
-import org.example.SimConstants
 import org.example.Simulation
-import org.example.WorldBuilder
-import org.example.deserializeCells
+import org.example.world.WorldBuilder
+import org.example.part.deserializeCells
+import org.example.world.Chunk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class SimulationTest {
 
     @Test
-    fun step_whenGliderPlaced_shouldMove() {
+    fun `Glider pattern should properly change to it's second state`() {
         val initialPart = deserializeCells("""
-            _X__
-            __X_
-            XXX_
-            ____
+            OXOO
+            OOXO
+            XXXO
+            OOOO
         """.trimIndent())
 
         val expectedPart = deserializeCells("""
-            ____
-            X_X_
-            _XX_
-            _X__
+            OOOO
+            XOXO
+            OXXO
+            OXOO
         """.trimIndent())
         var world = WorldBuilder().setPart(1,1, initialPart).build()
 
@@ -31,17 +31,17 @@ class SimulationTest {
     }
 
     @Test
-    fun step_whenOneAlive_shouldDieFromUnderpopulation() {
+    fun `One cell without neighbors should die from underpopulation`() {
         val initialPart = deserializeCells("""
-            ____
-            __X_
-            ____
+            OOOO
+            OOXO
+            OOOO
         """.trimIndent())
 
         val expectedPart = deserializeCells("""
-            ____
-            ____
-            ____
+            OOOO
+            OOOO
+            OOOO
         """.trimIndent())
         var world = WorldBuilder().setPart(1,1, initialPart).build()
 
@@ -52,19 +52,19 @@ class SimulationTest {
     }
 
     @Test
-    fun step_whenStablePatternPlaced_shouldStayTheSame() {
+    fun `Pattern that doesn't change in next simulation steps, should stay the same`() {
         val initialPart = deserializeCells("""
-            ____
-            _XX_
-            _XX_
-            ____
+            OOOO
+            OXXO
+            OXXO
+            OOOO
         """.trimIndent())
 
         val expectedPart = deserializeCells("""
-            ____
-            _XX_
-            _XX_
-            ____
+            OOOO
+            OXXO
+            OXXO
+            OOOO
         """.trimIndent())
         var world = WorldBuilder().setPart(1,1, initialPart).build()
 
@@ -75,17 +75,17 @@ class SimulationTest {
     }
 
     @Test
-    fun step_whenGliderPlacedNearChunkBorder_shouldCreateNewChunksOnMove() {
+    fun `Glider placed at the edge of the chunk, should create new chunks`() {
         val gliderPart = deserializeCells("""
-            _X_
-            __X
+            OXO
+            OOX
             XXX
-            ___
+            OOO
         """.trimIndent())
 
         //Places exactly in chunk (0,0) on the edge
-        val initialX = SimConstants.CHUNK_SIZE-gliderPart.width
-        val initialY = SimConstants.CHUNK_SIZE-gliderPart.height
+        val initialX = Chunk.CHUNK_SIZE - gliderPart.width
+        val initialY = Chunk.CHUNK_SIZE - gliderPart.height
 
         var world = WorldBuilder().setPart(initialX, initialY, gliderPart).build()
         val stepsToMoveByTwo = 8
