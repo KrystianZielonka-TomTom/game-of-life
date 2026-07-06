@@ -1,7 +1,6 @@
 import org.example.SimConstants
 import org.example.Simulation
 import org.example.WorldBuilder
-import org.example.WorldData
 import org.example.deserializeCells
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

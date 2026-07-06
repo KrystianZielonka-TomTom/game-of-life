@@ -1,6 +1,7 @@
 package org.example
 
 import kotlin.collections.HashMap
+import kotlin.random.Random
 
 class WorldBuilder {
     val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
@@ -22,6 +23,16 @@ class WorldBuilder {
         for (py in 0 until part.height) {
             for (px in 0 until part.width) {
                 setCell(x + px, y + py, part.data[py * part.width + px])
+            }
+        }
+
+        return this
+    }
+
+    fun setRandom(x : Int, y : Int, width: Int, height: Int, random: Random): WorldBuilder {
+        for (py in 0 until height) {
+            for (px in 0 until width) {
+                setCell(x + px, y + py, random.nextBoolean())
             }
         }
 
