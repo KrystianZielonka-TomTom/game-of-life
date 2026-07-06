@@ -1,6 +1,6 @@
 import org.example.Simulation
+import org.example.part.CellPart
 import org.example.world.WorldBuilder
-import org.example.part.deserializeCells
 import org.example.world.Chunk
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -9,14 +9,14 @@ class SimulationTest {
 
     @Test
     fun `Glider pattern should properly change to it's second state`() {
-        val initialPart = deserializeCells("""
+        val initialPart = CellPart.deserializeCells("""
             OXOO
             OOXO
             XXXO
             OOOO
         """.trimIndent())
 
-        val expectedPart = deserializeCells("""
+        val expectedPart = CellPart.deserializeCells("""
             OOOO
             XOXO
             OXXO
@@ -32,13 +32,13 @@ class SimulationTest {
 
     @Test
     fun `One cell without neighbors should die from underpopulation`() {
-        val initialPart = deserializeCells("""
+        val initialPart = CellPart.deserializeCells("""
             OOOO
             OOXO
             OOOO
         """.trimIndent())
 
-        val expectedPart = deserializeCells("""
+        val expectedPart = CellPart.deserializeCells("""
             OOOO
             OOOO
             OOOO
@@ -53,14 +53,14 @@ class SimulationTest {
 
     @Test
     fun `Pattern that doesn't change in next simulation steps, should stay the same`() {
-        val initialPart = deserializeCells("""
+        val initialPart = CellPart.deserializeCells("""
             OOOO
             OXXO
             OXXO
             OOOO
         """.trimIndent())
 
-        val expectedPart = deserializeCells("""
+        val expectedPart = CellPart.deserializeCells("""
             OOOO
             OXXO
             OXXO
@@ -76,7 +76,7 @@ class SimulationTest {
 
     @Test
     fun `Glider placed at the edge of the chunk, should create new chunks`() {
-        val gliderPart = deserializeCells("""
+        val gliderPart = CellPart.deserializeCells("""
             OXO
             OOX
             XXX

@@ -1,8 +1,6 @@
 package part
 
 import org.example.part.CellPart
-import org.example.part.deserializeCells
-import org.example.part.serializeCells
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -20,7 +18,7 @@ class CellSerializationTest {
             true, false, false, false,
             false, true, true, false)
 
-        val part = deserializeCells(pattern)
+        val part = CellPart.deserializeCells(pattern)
 
         Assertions.assertArrayEquals(validPattern, part.data)
     }
@@ -38,7 +36,7 @@ class CellSerializationTest {
             OXXO
         """.trimIndent()
 
-        val pattern = serializeCells(part, 'O')
+        val pattern = CellPart.serializeCells(part, 'O')
 
         Assertions.assertEquals(expectedPattern, pattern)
     }
