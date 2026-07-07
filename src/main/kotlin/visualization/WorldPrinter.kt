@@ -1,7 +1,7 @@
 package org.example.visualization
 
-import org.example.world.WorldData
+import org.example.world.World
 
 interface WorldPrinter {
-    fun print(data: WorldData)
+    fun print(world: World)
 }
