@@ -4,14 +4,6 @@ import org.example.part.CellPart
 import kotlin.collections.HashMap
 import kotlin.random.Random
 
-//Moge zrobić typ danych który reprezentuje koordynaty globalne/lokalne/chunk
-
-
-/**
- * Immutable representation of all cells in game of life. World is split into chunks of size SimConstants.CHUNK_SIZE,
- * empty chunks are disregarded. WorldData doesn't hold cell data directly, it only holds chunks that are present in world.
- */
-
 class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()) {
 
     companion object {
@@ -71,14 +63,9 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
             for (x in 0 until Chunk.WIDTH) {
                 for (y in 0 until Chunk.WIDTH) {
                     val alive = midChunk?.getState(x,y) ?: false
-                    val neighbours = if (x in 1 until edge && y in 1 until edge) {
-                        midChunk?.getLocalNeighboursCount(x,y) ?: 0
-                    } else {
-                        //Cell on the edge of chunk needs to check globally
-                        val (globalX, globalY) =
-                            getGlobalCoords(x, y, chunkIndex.first, chunkIndex.second)
-                        world.getGlobalNeighboursCount(globalX,globalY)
-                    }
+                    val (globalX, globalY) =
+                        getGlobalCoords(x, y, chunkIndex.first, chunkIndex.second)
+                    val neighbours = world.getGlobalNeighboursCount(globalX, globalY)
                     val next = nextState(alive, neighbours)
                     if (next) {
                         newChunk.setCell(x,y, true)
@@ -117,6 +104,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
     fun withPart(globalX : Int, globalY : Int, part: CellPart): World {
         val newChunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
 
+        var i = 0
         for (py in 0 until part.height) {
             for (px in 0 until part.width) {
                 val nGlobalX = globalX + px
@@ -124,7 +112,8 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
 
                 val (localX, localY) = getLocalCords(nGlobalX, nGlobalY)
                 newChunks.getOrPut(getChunkIndex(nGlobalX, nGlobalY)) {Chunk.empty()}
-                    .setCell(localX, localY, part.data[localY * part.width + localX])
+                    .setCell(localX, localY, part.data[i])
+                i++
             }
         }
         return World(newChunks)
@@ -169,10 +158,6 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
     }
 
 
-    /**
-     * Returns count of alive neighbors of cell given by global coordinates X and Y.
-     * For better performance use Chunk#getNeighborsCount
-     */
     private fun getGlobalNeighboursCount(globalX: Int, globalY: Int): Int {
         val (localX, localY) = getLocalCords(globalX, globalY)
         if (!Chunk.isOnBorder(localX, localY)) {
@@ -195,10 +180,6 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
     }
 
 
-    /**
-     * Chunk is what actually holds cell data. It doesn't know anything about World it is in. Any communication between chunks,
-     * should happen using WorldData.
-     */
     private class Chunk private constructor(private val cells: BooleanArray) {
 
         companion object {
@@ -220,7 +201,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
         }
 
         fun getLocalNeighboursCount(localX: Int, localY: Int): Int {
-            if (!isOnBorder(localX, localY)) throw IllegalArgumentException("Coordinates out of range: $localX, $localY. Must be in [1, ${LAST})")
+            if (isOnBorder(localX, localY)) throw IllegalArgumentException("Coordinates out of range: $localX, $localY. Must be in [1, ${LAST})")
 
             var count = 0
             for (i in -1..1) {

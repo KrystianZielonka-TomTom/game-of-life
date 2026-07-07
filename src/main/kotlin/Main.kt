@@ -1,5 +1,6 @@
 package org.example
 
+import org.example.part.serializeCells
 import org.example.world.World
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
@@ -21,5 +22,7 @@ fun main() {
     }
 
 //    printer.print(world)
+
+    print(world.getPart(0,0,100,100).serializeCells('_'))
     println("Total time: $timeTaken ms")
 }
