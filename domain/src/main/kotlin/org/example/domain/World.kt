@@ -1,7 +1,5 @@
-package org.example.world
+package org.example.domain
 
-import org.example.part.CellPart
-import kotlin.collections.HashMap
 import kotlin.random.Random
 
 class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()) {
@@ -27,30 +25,9 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
             return World(HashMap(chunks))
         }
 
-        fun step(world: World) : World {
-            val chunksToProcess = HashSet<Pair<Int, Int>>()
-            //All neighbors of active chunk need to be evaluated as well
-            for (key in world.chunks.keys) {
-                val x = key.first
-                val y = key.second
-                //Add all neighbors of middle chunk as well as middle chunk
-                for(cx in -1..1) {
-                    for(cy in -1..1) {
-                        chunksToProcess.add(Pair(x + cx, y + cy))
-                    }
-                }
-            }
-
-            val resultChunks = HashMap<Pair<Int, Int>, Chunk>()
-
-            for (coords in chunksToProcess) {
-                val c = calcNextChunk(world, coords)
-                if (c != null) {
-                    resultChunks[coords] = c
-                }
-            }
-
-            return World(resultChunks)
+        fun fromRandom(globalX : Int, globalY : Int, width: Int, height: Int, random: Random): World {
+            //allocation that doesn't achieve anything at World()
+            return World().withRandom(globalX, globalY, width, height, random)
         }
 
         private fun calcNextChunk(world: World, chunkIndex: Pair<Int, Int>): Chunk? {
@@ -91,6 +68,36 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
             }
             return false
         }
+    }
+
+    fun step(iterations: Int = 1) : World {
+        var newWorld = this
+        repeat(iterations) {
+            val chunksToProcess = HashSet<Pair<Int, Int>>()
+            //All neighbors of active chunk need to be evaluated as well
+            for (key in newWorld.chunks.keys) {
+                val x = key.first
+                val y = key.second
+                //Add all neighbors of middle chunk as well as middle chunk
+                for(cx in -1..1) {
+                    for(cy in -1..1) {
+                        chunksToProcess.add(Pair(x + cx, y + cy))
+                    }
+                }
+            }
+
+            val resultChunks = HashMap<Pair<Int, Int>, Chunk>()
+
+            for (coords in chunksToProcess) {
+                val c = calcNextChunk(newWorld, coords)
+                if (c != null) {
+                    resultChunks[coords] = c
+                }
+            }
+
+            newWorld = World(resultChunks)
+        }
+        return newWorld
     }
 
     fun withCell(globalX : Int, globalY : Int, state: Boolean): World {
@@ -162,7 +169,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
         val (localX, localY) = getLocalCords(globalX, globalY)
         if (!Chunk.isOnBorder(localX, localY)) {
             val (chunkX, chunkY) = getChunkIndex(globalX, globalY)
-            getChunk(chunkX, chunkY)?.getLocalNeighboursCount(localX, localY) ?: return 0
+            return getChunk(chunkX, chunkY)?.getLocalNeighboursCount(localX, localY) ?: 0
         }
 
         var count = 0
