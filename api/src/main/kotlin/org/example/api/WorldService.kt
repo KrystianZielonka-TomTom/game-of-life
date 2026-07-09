@@ -1,6 +1,7 @@
 package org.example.api
 
 import org.example.api.dto.WorldDto
+import org.example.api.request.WorldRandomRequest
 import org.example.api.request.WorldStepRequest
 import org.example.domain.CellPart
 import org.example.domain.World
@@ -10,33 +11,22 @@ import kotlin.random.Random
 @Service
 class WorldService(private val tileMapper: TileMapper) {
 
-    fun getRandomWorld(
-        steps: Int,
-        initialX: Int,
-        initialY: Int,
-        initialWidth: Int,
-        initialHeight: Int,
-        requestedX: Int,
-        requestedY: Int,
-        requestedWidth: Int,
-        requestedHeight: Int,
-        seed: Long? = null,
-    ): CellPart {
-        var actualSeed = seed
-        if (seed==null) actualSeed = System.currentTimeMillis()
+    fun getRandomWorld(request: WorldRandomRequest): CellPart {
+        var actualSeed = request.seed
+        if (request.seed==null) actualSeed = System.currentTimeMillis()
 
         val part = World.fromRandom(
-            initialX,
-            initialY,
-            initialWidth,
-            initialHeight,
+            request.initialX,
+            request.initialY,
+            request.initialWidth,
+            request.initialHeight,
             Random(actualSeed)
-        ).step(steps)
+        ).step(request.steps)
             .getPart(
-                requestedX,
-                requestedY,
-                requestedWidth,
-                requestedHeight
+                request.requestedX,
+                request.requestedY,
+                request.requestedWidth,
+                request.requestedHeight
             )
 
         return part;

@@ -2,6 +2,7 @@ package org.example.api
 
 import org.example.api.dto.CellPartDto
 import org.example.api.dto.WorldDto
+import org.example.api.request.WorldRandomRequest
 import org.example.api.request.WorldStepRequest
 import org.springframework.web.bind.annotation.*
 
@@ -11,6 +12,7 @@ class WorldController(private val worldService: WorldService) {
     @CrossOrigin
     @GetMapping("/world/random")
     fun getRandomWorld(
+        //TODO get RequestParam to work on class fields in kotlin
         @RequestParam("steps", defaultValue = "1") steps: Int,
         @RequestParam("seed", defaultValue = "-1") seed: Long,
         @RequestParam("x", defaultValue = "0") initialX: Int,
@@ -22,18 +24,19 @@ class WorldController(private val worldService: WorldService) {
         @RequestParam("reqW", defaultValue = "100") requestedWidth: Int,
         @RequestParam("reqH", defaultValue = "100") requestedHeight: Int,
     ): CellPartDto {
-        //Application logic in controller
+        val request = WorldRandomRequest(
+            steps = steps,
+            seed = if(seed==-1L) null else seed,
+            initialX = initialX,
+            initialY = initialY,
+            initialWidth = initialWidth,
+            initialHeight = initialHeight,
+            requestedX = requestedX,
+            requestedY = requestedY,
+            requestedWidth = requestedWidth,
+            requestedHeight = requestedHeight)
 
-        val part = worldService.getRandomWorld(steps,
-            initialX,
-            initialY,
-            initialWidth,
-            initialHeight,
-            requestedX,
-            requestedY,
-            requestedWidth,
-            requestedHeight,
-            if(seed==-1L) null else seed)
+        val part = worldService.getRandomWorld(request)
         return CellPartDto(requestedX, requestedY, part.width, part.height, part.data)
     }
 
