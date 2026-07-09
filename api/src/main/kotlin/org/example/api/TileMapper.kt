@@ -2,7 +2,9 @@ package org.example.api
 
 import org.example.api.dto.TileDto
 import org.example.domain.Tile
+import org.springframework.stereotype.Component
 
+@Component
 class TileMapper {
     fun fromTile(tile: Tile): TileDto {
         return TileDto(tile.tileIndexX, tile.tileIndexY, tile.cells)
