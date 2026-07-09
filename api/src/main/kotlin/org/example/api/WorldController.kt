@@ -1,14 +1,14 @@
 package org.example.api
 
-import org.example.domain.World
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
-import kotlin.random.Random
+import org.example.api.dto.CellPartDto
+import org.example.api.dto.WorldDto
+import org.example.api.request.WorldStepRequest
+import org.springframework.web.bind.annotation.*
 
 @RestController
-class WorldController {
+class WorldController(private val worldService: WorldService) {
 
+    @CrossOrigin
     @GetMapping("/world/random")
     fun getRandomWorld(
         @RequestParam("steps", defaultValue = "1") steps: Int,
@@ -21,26 +21,25 @@ class WorldController {
         @RequestParam("reqY", defaultValue = "0") requestedY: Int,
         @RequestParam("reqW", defaultValue = "100") requestedWidth: Int,
         @RequestParam("reqH", defaultValue = "100") requestedHeight: Int,
-    ): WorldResponse {
+    ): CellPartDto {
         //Application logic in controller
 
-        var actualSeed = seed
-        if (seed==-1L) actualSeed = System.currentTimeMillis()
-
-        val part = World.fromRandom(
+        val part = worldService.getRandomWorld(steps,
             initialX,
             initialY,
             initialWidth,
             initialHeight,
-            Random(actualSeed)
-        ).step(steps)
-            .getPart(
-                requestedX,
-                requestedY,
-                requestedWidth,
-                requestedHeight
-            )
+            requestedX,
+            requestedY,
+            requestedWidth,
+            requestedHeight,
+            if(seed==-1L) null else seed)
+        return CellPartDto(requestedX, requestedY, part.width, part.height, part.data)
+    }
 
-        return WorldResponse(requestedX, requestedY, part.width, part.height, part.data)
+    @CrossOrigin
+    @PostMapping("/world/step")
+    fun getNextState(@RequestBody request: WorldStepRequest): WorldDto {
+        return worldService.getNextState(request)
     }
 }

@@ -30,10 +30,17 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
             return World().withRandom(globalX, globalY, width, height, random)
         }
 
+        fun fromTiles(tiles: List<Tile>): World {
+            val newChunks = HashMap<Pair<Int, Int>, Chunk>()
+            for (tile in tiles) {
+                newChunks[Pair(tile.tileIndexX, tile.tileIndexY)] = Chunk.from(tile.cells)
+            }
+            return World(newChunks)
+        }
+
         private fun calcNextChunk(world: World, chunkIndex: Pair<Int, Int>): Chunk? {
             val newChunk = Chunk.empty()
             val midChunk = world.chunks[chunkIndex]
-            val edge = Chunk.WIDTH-1
             var hasAlive = false
 
             //TODO improve checking efficiency
@@ -160,6 +167,12 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
         return CellPart(data, width, height)
     }
 
+    fun getTiles(): List<Tile> {
+        return chunks.map { (chunkCoords, chunk) ->
+            Tile(chunkCoords.first, chunkCoords.second, chunk.getCells())
+        }
+    }
+
     private fun getChunk(chunkX: Int, chunkY: Int): Chunk? {
         return chunks[Pair(chunkX, chunkY)]
     }
@@ -186,11 +199,10 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
         return count
     }
 
-
     private class Chunk private constructor(private val cells: BooleanArray) {
 
         companion object {
-            const val WIDTH = 64
+            const val WIDTH = Tile.WIDTH
             const val LAST = WIDTH - 1
             const val FIRST = 0
 
@@ -205,6 +217,10 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
 
         fun getState(localX: Int, localY: Int): Boolean {
             return cells[localY * WIDTH + localX]
+        }
+
+        fun getCells(): BooleanArray {
+            return cells.copyOf()
         }
 
         fun getLocalNeighboursCount(localX: Int, localY: Int): Int {

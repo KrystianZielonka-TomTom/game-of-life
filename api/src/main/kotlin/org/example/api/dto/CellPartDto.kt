@@ -1,6 +1,6 @@
-package org.example.api
+package org.example.api.dto
 
-data class WorldResponse(
+class CellPartDto(
     val x: Int,
     val y: Int,
     val width: Int,
