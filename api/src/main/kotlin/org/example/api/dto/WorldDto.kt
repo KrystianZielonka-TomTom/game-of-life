@@ -1,5 +1,8 @@
 package org.example.api.dto
 
-class WorldDto(
-    val tiles: List<TileDto>
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+
+class WorldDto @JsonCreator constructor(
+    @JsonProperty("tiles") val tiles: List<TileDto>
 )
