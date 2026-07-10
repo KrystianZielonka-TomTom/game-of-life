@@ -1,6 +1,7 @@
 package org.example.api
 
 import org.example.api.dto.WorldDto
+import org.example.api.mappers.TileMapper
 import org.example.api.request.WorldRandomRequest
 import org.example.api.request.WorldStepRequest
 import org.example.domain.CellPart

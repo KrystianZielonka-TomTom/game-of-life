@@ -1,4 +1,4 @@
-package org.example.api
+package org.example.api.mappers
 
 import org.example.api.dto.TileDto
 import org.example.domain.Tile

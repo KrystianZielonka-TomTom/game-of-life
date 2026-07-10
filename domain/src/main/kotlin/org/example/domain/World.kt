@@ -81,6 +81,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
         var newWorld = this
         repeat(iterations) {
             val chunksToProcess = HashSet<Pair<Int, Int>>()
+
             //All neighbors of active chunk need to be evaluated as well
             for (key in newWorld.chunks.keys) {
                 val x = key.first
@@ -92,6 +93,21 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
                     }
                 }
             }
+
+
+            //val resultChunks = runBlocking { coroutineScope {
+            //                chunksToProcess.map { coords ->
+            //                    async(Dispatchers.IO) {
+            //                        coords to calcNextChunk(newWorld, coords)
+            //                    }
+            //                }.awaitAll()
+            //                    .filter { it.second != null }
+            //                    .associate { it.first to it.second!! }
+            //            }
+            //                }
+            //
+            //
+            //            newWorld = World(HashMap(resultChunks))
 
             val resultChunks = HashMap<Pair<Int, Int>, Chunk>()
 
