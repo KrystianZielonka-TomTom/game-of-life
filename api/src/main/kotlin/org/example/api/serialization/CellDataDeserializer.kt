@@ -1,4 +1,4 @@
-package org.example.api
+package org.example.api.serialization
 
 import org.springframework.boot.jackson.JacksonComponent
 import tools.jackson.core.JsonParser

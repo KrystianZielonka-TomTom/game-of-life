@@ -2,12 +2,10 @@ package org.example.api
 
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
-import org.example.api.dto.TileDto
 import org.example.api.dto.WorldDto
 import org.example.api.mappers.TileMapper
 import org.example.api.request.WorldStepRequest
 import org.example.domain.CellPart
-import org.example.domain.Tile
 import org.example.domain.World
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue

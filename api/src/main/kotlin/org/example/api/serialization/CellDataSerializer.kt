@@ -1,6 +1,7 @@
-package org.example.api
+package org.example.api.serialization
 
 import org.springframework.boot.jackson.JacksonComponent
+import tools.jackson.core.JsonGenerator
 import tools.jackson.databind.SerializationContext
 import tools.jackson.databind.ValueSerializer
 import kotlin.io.encoding.Base64
@@ -10,7 +11,7 @@ class CellDataSerializer : ValueSerializer<BooleanArray>() {
 
     override fun serialize(
         value: BooleanArray?,
-        gen: tools.jackson.core.JsonGenerator?,
+        gen: JsonGenerator?,
         ctxt: SerializationContext?
     ) {
         if (gen == null)

@@ -30,7 +30,7 @@ class WorldService(private val tileMapper: TileMapper) {
                 request.requestedHeight
             )
 
-        return part;
+        return part
     }
 
     fun getNextState(request: WorldStepRequest): WorldDto {

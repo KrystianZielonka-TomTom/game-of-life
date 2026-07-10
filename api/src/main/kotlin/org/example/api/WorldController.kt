@@ -1,5 +1,6 @@
 package org.example.api
 
+import jakarta.validation.Valid
 import org.example.api.dto.CellPartDto
 import org.example.api.dto.WorldDto
 import org.example.api.request.WorldRandomRequest
@@ -42,7 +43,7 @@ class WorldController(private val worldService: WorldService) {
 
     @CrossOrigin
     @PostMapping("/world/step")
-    fun getNextState(@RequestBody request: WorldStepRequest): WorldDto {
+    fun getNextState(@RequestBody @Valid request: WorldStepRequest): WorldDto {
         return worldService.getNextState(request)
     }
 }

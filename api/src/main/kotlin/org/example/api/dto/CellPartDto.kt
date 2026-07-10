@@ -1,6 +1,6 @@
 package org.example.api.dto
 
-class CellPartDto(
+data class CellPartDto(
     val x: Int,
     val y: Int,
     val width: Int,
