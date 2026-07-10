@@ -1,4 +1,4 @@
-package org.example.part
+package org.example.domain
 
 import java.io.BufferedReader
 import java.io.StringReader

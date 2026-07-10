@@ -1,7 +1,5 @@
-package part
+package org.example.domain
 
-import org.example.part.CellPart
-import org.example.part.serializeCells
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

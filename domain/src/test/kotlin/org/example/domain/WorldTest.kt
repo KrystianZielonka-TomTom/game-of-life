@@ -1,7 +1,5 @@
-package world
+package org.example.domain
 
-import org.example.part.CellPart
-import org.example.world.World
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -26,7 +24,7 @@ class WorldTest {
         val initialWorld = World.empty().withPart(1,1,initialPart)
 
         //When
-        val world = World.step(initialWorld)
+        val world = initialWorld.step()
 
         //Then
         val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
@@ -48,7 +46,7 @@ class WorldTest {
         """.trimIndent())
         var world = World.empty().withPart(1,1,initialPart)
 
-        world = World.step(world)
+        world = world.step()
 
         val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
         Assertions.assertEquals(expectedPart, actualPart)
@@ -71,7 +69,7 @@ class WorldTest {
         """.trimIndent())
         var world = World.empty().withPart(1,1,initialPart)
 
-        world = World.step(world)
+        world = world.step()
 
         val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
         Assertions.assertEquals(expectedPart, actualPart)
