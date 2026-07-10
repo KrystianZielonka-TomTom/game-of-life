@@ -3,7 +3,7 @@ package org.example.domain
 import java.io.BufferedReader
 import java.io.StringReader
 
-data class CellPart(val data: BooleanArray, val width: Int, val height: Int) {
+data class CellPart(val data: BooleanArray, val dimensions: Vector2D) {
     override fun toString(): String {
         return "CellPart(data=${this.serializeCells('O')})"
     }
@@ -34,7 +34,7 @@ data class CellPart(val data: BooleanArray, val width: Int, val height: Int) {
                 }
             }
 
-            return CellPart(data.toBooleanArray(), width, height)
+            return CellPart(data.toBooleanArray(), Vector2D(width, height))
         }
     }
 
@@ -44,17 +44,15 @@ data class CellPart(val data: BooleanArray, val width: Int, val height: Int) {
 
         other as CellPart
 
-        if (width != other.width) return false
-        if (height != other.height) return false
         if (!data.contentEquals(other.data)) return false
+        if (dimensions != other.dimensions) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = width
-        result = 31 * result + height
-        result = 31 * result + data.contentHashCode()
+        var result = data.contentHashCode()
+        result = 31 * result + dimensions.hashCode()
         return result
     }
 }
@@ -65,7 +63,7 @@ data class CellPart(val data: BooleanArray, val width: Int, val height: Int) {
 fun CellPart.serializeCells(deadCell: Char): String {
     val sb = StringBuilder()
     var count = 0
-    val max = this.width * this.height
+    val max = this.dimensions.x * this.dimensions.y
     for (c in this.data) {
         count++
         if (c) {
@@ -73,7 +71,7 @@ fun CellPart.serializeCells(deadCell: Char): String {
         } else {
             sb.append(deadCell)
         }
-        if (count%this.width == 0 && count < max) {
+        if (count%this.dimensions.x == 0 && count < max) {
             sb.append('\n')
         }
     }

@@ -1,8 +1,7 @@
 package org.example.domain
 
 class Tile(
-    val tileIndexX: Int,
-    val tileIndexY: Int,
+    val tileIndex: ChunkIndexVector2D,
     val cells: BooleanArray
 ) {
     companion object {

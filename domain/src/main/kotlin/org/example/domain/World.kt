@@ -1,44 +1,49 @@
 package org.example.domain
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
-class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()) {
+class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, Chunk> = HashMap()) {
 
     companion object {
-        internal fun getChunkIndex(globalX: Int, globalY: Int): Pair<Int, Int> {
-            return Pair(Math.floorDiv(globalX, Chunk.WIDTH), Math.floorDiv(globalY, Chunk.WIDTH))
+        internal fun getChunkIndex(global: GlobalVector2D): ChunkIndexVector2D {
+            return ChunkIndexVector2D(Math.floorDiv(global.x, Chunk.WIDTH), Math.floorDiv(global.y, Chunk.WIDTH))
         }
 
-        internal fun getLocalCords(globalX: Int, globalY: Int): Pair<Int, Int> {
-            return Pair(Math.floorMod(globalX, Chunk.WIDTH), Math.floorMod(globalY, Chunk.WIDTH))
+        internal fun getLocalCords(global: GlobalVector2D): ChunkLocalVector2D {
+            return ChunkLocalVector2D(Math.floorMod(global.x, Chunk.WIDTH), Math.floorMod(global.y, Chunk.WIDTH))
         }
 
-        internal fun getGlobalCoords(localX: Int, localY: Int, chunkIndexX: Int, chunkIndexY: Int): Pair<Int, Int> {
-            return Pair(chunkIndexX * Chunk.WIDTH + localX, chunkIndexY * Chunk.WIDTH + localY)
+        internal fun getGlobalCoords(local: ChunkLocalVector2D, chunk: ChunkIndexVector2D): GlobalVector2D {
+            return GlobalVector2D(chunk.x * Chunk.WIDTH + local.x, chunk.y * Chunk.WIDTH + local.y)
         }
 
         fun empty(): World {
             return World()
         }
 
-        private fun from(chunks: HashMap<Pair<Int, Int>, Chunk>): World {
+        private fun from(chunks: HashMap<ChunkIndexVector2D, Chunk>): World {
             return World(HashMap(chunks))
         }
 
-        fun fromRandom(globalX : Int, globalY : Int, width: Int, height: Int, random: Random): World {
+        fun fromRandom(global: GlobalVector2D, dimensions: Vector2D, random: Random): World {
             //allocation that doesn't achieve anything at World()
-            return World().withRandom(globalX, globalY, width, height, random)
+            return World().withRandom(global, dimensions, random)
         }
 
         fun fromTiles(tiles: List<Tile>): World {
-            val newChunks = HashMap<Pair<Int, Int>, Chunk>()
+            val newChunks = HashMap<ChunkIndexVector2D, Chunk>()
             for (tile in tiles) {
-                newChunks[Pair(tile.tileIndexX, tile.tileIndexY)] = Chunk.from(tile.cells)
+                newChunks[tile.tileIndex] = Chunk.from(tile.cells)
             }
             return World(newChunks)
         }
 
-        private fun calcNextChunk(world: World, chunkIndex: Pair<Int, Int>): Chunk? {
+        private fun calcNextChunk(world: World, chunkIndex: ChunkIndexVector2D): Chunk? {
             val newChunk = Chunk.empty()
             val midChunk = world.chunks[chunkIndex]
             var hasAlive = false
@@ -46,13 +51,14 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
             //TODO improve checking efficiency
             for (x in 0 until Chunk.WIDTH) {
                 for (y in 0 until Chunk.WIDTH) {
-                    val alive = midChunk?.getState(x,y) ?: false
-                    val (globalX, globalY) =
-                        getGlobalCoords(x, y, chunkIndex.first, chunkIndex.second)
-                    val neighbours = world.getGlobalNeighboursCount(globalX, globalY)
+                    val local = ChunkLocalVector2D(x, y)
+
+                    val alive = midChunk?.getState(local) ?: false
+                    val global = getGlobalCoords(local, chunkIndex)
+                    val neighbours = world.getGlobalNeighboursCount(global)
                     val next = nextState(alive, neighbours)
                     if (next) {
-                        newChunk.setCell(x,y, true)
+                        newChunk.setCell(local, true)
                         hasAlive = true
                     }
                 }
@@ -77,128 +83,126 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
         }
     }
 
-    fun step(iterations: Int = 1) : World {
+    fun step(iterations: Int = 1, synchronous: Boolean = false) : World {
         var newWorld = this
         repeat(iterations) {
-            val chunksToProcess = HashSet<Pair<Int, Int>>()
+            val chunksToProcess = HashSet<ChunkIndexVector2D>()
 
             //All neighbors of active chunk need to be evaluated as well
             for (key in newWorld.chunks.keys) {
-                val x = key.first
-                val y = key.second
                 //Add all neighbors of middle chunk as well as middle chunk
                 for(cx in -1..1) {
                     for(cy in -1..1) {
-                        chunksToProcess.add(Pair(x + cx, y + cy))
+                        chunksToProcess.add(ChunkIndexVector2D(key.x + cx, key.y + cy))
                     }
                 }
             }
 
-
-            //val resultChunks = runBlocking { coroutineScope {
-            //                chunksToProcess.map { coords ->
-            //                    async(Dispatchers.IO) {
-            //                        coords to calcNextChunk(newWorld, coords)
-            //                    }
-            //                }.awaitAll()
-            //                    .filter { it.second != null }
-            //                    .associate { it.first to it.second!! }
-            //            }
-            //                }
-            //
-            //
-            //            newWorld = World(HashMap(resultChunks))
-
-            val resultChunks = HashMap<Pair<Int, Int>, Chunk>()
-
-            for (coords in chunksToProcess) {
-                val c = calcNextChunk(newWorld, coords)
-                if (c != null) {
-                    resultChunks[coords] = c
+            if (!synchronous) {
+                val resultChunks = runBlocking { coroutineScope {
+                    chunksToProcess.map { coords ->
+                        async(Dispatchers.Default) {
+                            coords to calcNextChunk(newWorld, coords)
+                        }
+                    }.awaitAll()
+                        .filter { it.second != null }
+                        .associate { it.first to it.second!! }
                 }
-            }
+                }
 
-            newWorld = World(resultChunks)
+
+                newWorld = World(HashMap(resultChunks))
+            } else {
+                val resultChunks = HashMap<ChunkIndexVector2D, Chunk>()
+
+                for (coords in chunksToProcess) {
+                    val c = calcNextChunk(newWorld, coords)
+                    if (c != null) {
+                        resultChunks[coords] = c
+                    }
+                }
+
+                newWorld = World(resultChunks)
+            }
         }
         return newWorld
     }
 
-    fun withCell(globalX : Int, globalY : Int, state: Boolean): World {
-        val chunkCoords = getChunkIndex(globalX, globalY)
-        val (lx, ly) = getLocalCords(globalX, globalY)
+    fun withCell(global: GlobalVector2D, state: Boolean): World {
+        val chunkCoords = getChunkIndex(global)
+        val local = getLocalCords(global)
         val newWorld = from(chunks)
-        newWorld.chunks.getOrPut(chunkCoords) { Chunk.empty() }.setCell(lx, ly, state)
+        newWorld.chunks.getOrPut(chunkCoords) { Chunk.empty() }.setCell(local, state)
         return this
     }
 
-    fun withPart(globalX : Int, globalY : Int, part: CellPart): World {
-        val newChunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
+    fun withPart(global: GlobalVector2D, part: CellPart): World {
+        val newChunks: HashMap<ChunkIndexVector2D, Chunk> = HashMap()
 
         var i = 0
-        for (py in 0 until part.height) {
-            for (px in 0 until part.width) {
-                val nGlobalX = globalX + px
-                val nGlobalY = globalY + py
+        for (py in 0 until part.dimensions.y) {
+            for (px in 0 until part.dimensions.x) {
+                val nGlobal = GlobalVector2D(global.x + px, global.y + py)
 
-                val (localX, localY) = getLocalCords(nGlobalX, nGlobalY)
-                newChunks.getOrPut(getChunkIndex(nGlobalX, nGlobalY)) {Chunk.empty()}
-                    .setCell(localX, localY, part.data[i])
+                val local = getLocalCords(nGlobal)
+                newChunks.getOrPut(getChunkIndex(nGlobal)) {Chunk.empty()}
+                    .setCell(local, part.data[i])
                 i++
             }
         }
         return World(newChunks)
     }
 
-    fun withRandom(globalX : Int, globalY : Int, width: Int, height: Int, random: Random): World {
-        val newChunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()
-        for (py in 0 until height) {
-            for (px in 0 until width) {
-                val nGlobalX = globalX + px
-                val nGlobalY = globalY + py
+    fun withRandom(global: GlobalVector2D, dimensions: Vector2D, random: Random): World {
+        val newChunks: HashMap<ChunkIndexVector2D, Chunk> = HashMap()
+        for (py in 0 until dimensions.x) {
+            for (px in 0 until dimensions.y) {
+                val nGlobal = GlobalVector2D(global.x + px, global.y + py)
 
-                val (localX, localY) = getLocalCords(nGlobalX, nGlobalY)
-                newChunks.getOrPut(getChunkIndex(nGlobalX, nGlobalY)) {Chunk.empty()}
-                    .setCell(localX, localY, random.nextInt(0, 2) == 1)
+                val local = getLocalCords(nGlobal)
+                newChunks.getOrPut(getChunkIndex(nGlobal)) {Chunk.empty()}
+                    .setCell(local, random.nextInt(0, 2) == 1)
             }
         }
         return World(newChunks)
     }
 
-    fun getState(x: Int, y: Int): Boolean {
-        val chPair = getChunkIndex(x, y)
+    fun getState(global: GlobalVector2D): Boolean {
+        val chPair = getChunkIndex(global)
         val chunk = chunks[chPair] ?: return false
-        val (xLocal, yLocal) = getLocalCords(x, y)
-        return chunk.getState(xLocal,yLocal)
+        val local = getLocalCords(global)
+        return chunk.getState(local)
     }
 
-    fun getPart(x: Int, y: Int, width: Int, height: Int): CellPart {
-        val data = BooleanArray(width * height)
+    fun getPart(global: GlobalVector2D, dimensions: Vector2D): CellPart {
+        val data = BooleanArray(dimensions.x * dimensions.y) { false }
         var c = 0
-        for (yi in y until y + height) {
-            for (xi in x until x + width) {
-                data[c] = getState(xi,yi)
+        for (yi in global.y until global.y + dimensions.y) {
+            for (xi in global.x until global.x + dimensions.x) {
+                val s = getState(GlobalVector2D(xi, yi))
+                data[c] = s
                 c++
             }
         }
-        return CellPart(data, width, height)
+        return CellPart(data, dimensions)
     }
 
     fun getTiles(): List<Tile> {
         return chunks.map { (chunkCoords, chunk) ->
-            Tile(chunkCoords.first, chunkCoords.second, chunk.getCells())
+            Tile(chunkCoords, chunk.getCells())
         }
     }
 
-    private fun getChunk(chunkX: Int, chunkY: Int): Chunk? {
-        return chunks[Pair(chunkX, chunkY)]
+    private fun getChunk(chunkIndex: ChunkIndexVector2D): Chunk? {
+        return chunks[chunkIndex]
     }
 
 
-    private fun getGlobalNeighboursCount(globalX: Int, globalY: Int): Int {
-        val (localX, localY) = getLocalCords(globalX, globalY)
-        if (!Chunk.isOnBorder(localX, localY)) {
-            val (chunkX, chunkY) = getChunkIndex(globalX, globalY)
-            return getChunk(chunkX, chunkY)?.getLocalNeighboursCount(localX, localY) ?: 0
+    private fun getGlobalNeighboursCount(global: GlobalVector2D): Int {
+        val local = getLocalCords(global)
+        if (!Chunk.isOnBorder(local)) {
+            val chunkInd = getChunkIndex(global)
+            return getChunk(chunkInd)?.getLocalNeighboursCount(local) ?: 0
         }
 
         var count = 0
@@ -207,7 +211,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
                 if (i == 0 && j == 0) {
                     continue
                 }
-                if (getState(globalX+i, globalY+j)) {
+                if (getState(GlobalVector2D(global.x+i, global.y+j))) {
                     count++
                 }
             }
@@ -224,23 +228,23 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
 
             fun empty() = Chunk(BooleanArray(WIDTH*WIDTH))
             fun from(cells: BooleanArray) = Chunk(cells)
-            fun isOnBorder(localX: Int, localY: Int): Boolean = localX == FIRST || localX == LAST || localY == FIRST || localY == LAST
+            fun isOnBorder(local: ChunkLocalVector2D): Boolean = local.x == FIRST || local.x == LAST || local.y == FIRST || local.y == LAST
         }
 
-        fun setCell(localX: Int, localY: Int, state: Boolean) {
-            cells[localY * WIDTH + localX] = state
+        fun setCell(local: ChunkLocalVector2D, state: Boolean) {
+            cells[local.y * WIDTH + local.x] = state
         }
 
-        fun getState(localX: Int, localY: Int): Boolean {
-            return cells[localY * WIDTH + localX]
+        fun getState(local: ChunkLocalVector2D): Boolean {
+            return cells[local.y * WIDTH + local.x]
         }
 
         fun getCells(): BooleanArray {
             return cells.copyOf()
         }
 
-        fun getLocalNeighboursCount(localX: Int, localY: Int): Int {
-            if (isOnBorder(localX, localY)) throw IllegalArgumentException("Coordinates out of range: $localX, $localY. Must be in [1, ${LAST})")
+        fun getLocalNeighboursCount(local: ChunkLocalVector2D): Int {
+            if (isOnBorder(local)) throw IllegalArgumentException("Coordinates out of range: $local. Must be in [1, ${LAST})")
 
             var count = 0
             for (i in -1..1) {
@@ -248,7 +252,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
                     if (i == 0 && j == 0) {
                         continue
                     }
-                    if (getState(localX + i, localY + j)) {
+                    if (getState(ChunkLocalVector2D( local.x+ i, local.y + j))) {
                         count++
                     }
                 }
