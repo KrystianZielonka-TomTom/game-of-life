@@ -1,5 +1,10 @@
 package org.example.domain
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chunk> = HashMap()) {
@@ -77,7 +82,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
         }
     }
 
-    fun step(iterations: Int = 1) : World {
+    fun step(iterations: Int = 1, synchronous: Boolean = false) : World {
         var newWorld = this
         repeat(iterations) {
             val chunksToProcess = HashSet<Pair<Int, Int>>()
@@ -94,21 +99,21 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
                 }
             }
 
+            if (!synchronous) {
+            val resultChunks = runBlocking { coroutineScope {
+                            chunksToProcess.map { coords ->
+                                async(Dispatchers.IO) {
+                                    coords to calcNextChunk(newWorld, coords)
+                                }
+                            }.awaitAll()
+                                .filter { it.second != null }
+                                .associate { it.first to it.second!! }
+                        }
+                            }
 
-            //val resultChunks = runBlocking { coroutineScope {
-            //                chunksToProcess.map { coords ->
-            //                    async(Dispatchers.IO) {
-            //                        coords to calcNextChunk(newWorld, coords)
-            //                    }
-            //                }.awaitAll()
-            //                    .filter { it.second != null }
-            //                    .associate { it.first to it.second!! }
-            //            }
-            //                }
-            //
-            //
-            //            newWorld = World(HashMap(resultChunks))
 
+                        newWorld = World(HashMap(resultChunks))
+            } else {
             val resultChunks = HashMap<Pair<Int, Int>, Chunk>()
 
             for (coords in chunksToProcess) {
@@ -119,6 +124,7 @@ class World private constructor(private val chunks: HashMap<Pair<Int, Int>, Chun
             }
 
             newWorld = World(resultChunks)
+            }
         }
         return newWorld
     }
