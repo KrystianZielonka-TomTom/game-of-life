@@ -105,19 +105,22 @@ class World private constructor(private val chunks: LongObjectHashMap<Chunk> = L
             }
 
             if (!synchronous) {
-//                val resultChunks = runBlocking { coroutineScope {
-//                    chunksToProcess.map { coords ->
-//                        async(Dispatchers.Default) {
-//                            coords to calcNextChunk(newWorld, coords)
-//                        }
-//                    }.awaitAll()
-//                        .filter { it.second != null }
-//                        .associate { it.first to it.second!! }
-//                }
-//                }
-//
-//
-//                newWorld = World(HashMap(resultChunks))
+                val list = ArrayList<Long>()
+                chunksToProcess.forEach { v -> list.add(v) }
+                val resultChunks = runBlocking { coroutineScope {
+                    list.map { coords ->
+                        async(Dispatchers.Default) {
+                            coords to calcNextChunk(newWorld, ChunkIndexVector2D(coords))
+                        }
+                    }.awaitAll()
+                        .filter { it.second != null }
+                        .associate { it.first to it.second!! }
+                }
+                }
+
+                val longChunkMap = LongObjectHashMap<Chunk>()
+                resultChunks.forEach { chunk -> longChunkMap.put(chunk.key, chunk.value) }
+                newWorld = World(longChunkMap)
             } else {
                 val resultChunks = LongObjectHashMap<Chunk>();
 
