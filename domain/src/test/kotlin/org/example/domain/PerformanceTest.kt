@@ -7,6 +7,16 @@ import kotlin.system.measureTimeMillis
 class PerformanceTest {
 
     @Test
+    fun `measure execution time of synchronous simulation for 1 steps on 10000x10000 world`() {
+        var world = World.empty().withRandom(GlobalVector2D(0,0), Vector2D(10000,10000), Random(System.currentTimeMillis()))
+        val timeTaken = measureTimeMillis {
+            world = world.step(1, true)
+        }
+        println("Simulation time taken: $timeTaken ms") //TODO
+    }
+
+
+    @Test
     fun `measure execution time of synchronous simulation for 1000 steps on 1000x1000 world`() {
         var world = World.empty().withRandom(GlobalVector2D(0,0), Vector2D(1000,1000), Random(System.currentTimeMillis()))
         val timeTaken = measureTimeMillis {

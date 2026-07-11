@@ -1,7 +1,7 @@
 package org.example.domain
 
 @JvmInline
-value class Vector2D(private val l: Long) {
+value class Vector2D(val l: Long) {
     constructor(x: Int, y: Int) : this(
         (x.toLong() shl 32) or (y.toLong() and 0xffffffffL)
     )
