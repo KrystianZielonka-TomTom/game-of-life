@@ -3,6 +3,7 @@ package org.example.domain
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
+
 class CellSerializationTest {
 
     @Test
@@ -28,7 +29,7 @@ class CellSerializationTest {
             false, true, false, false,
             true, false, false, false,
             false, true, true, false)
-        val part = CellPart(partPattern, 4, 3)
+        val part = CellPart(partPattern, Vector2D(4, 3))
         val expectedPattern = """
             OXOO
             XOOO

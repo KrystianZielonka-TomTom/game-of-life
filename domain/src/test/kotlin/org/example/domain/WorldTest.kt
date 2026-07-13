@@ -2,8 +2,21 @@ package org.example.domain
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 class WorldTest {
+
+    @Test
+    fun `Given world should return valid part`() {
+        val initialPart = CellPart.deserializeCells("""
+            OXOO
+            OOXO
+            XXXO
+            OOOO
+        """.trimIndent())
+        val expectedPart = World.empty().withPart(GlobalVector2D(1,1), initialPart).getPart(GlobalVector2D(1,1), initialPart.dimensions)
+        assertEquals(initialPart, expectedPart)
+    }
 
     @Test
     fun `Glider pattern should properly change to it's second state`() {
@@ -21,13 +34,13 @@ class WorldTest {
             OXXO
             OXOO
         """.trimIndent())
-        val initialWorld = World.empty().withPart(1,1,initialPart)
+        val initialWorld = World.empty().withPart(GlobalVector2D(1,1),initialPart)
 
         //When
-        val world = initialWorld.step()
+        val world = initialWorld.step(1, true)
 
         //Then
-        val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
+        val actualPart = world.getPart(GlobalVector2D(1,1), expectedPart.dimensions)
         Assertions.assertEquals(expectedPart, actualPart) //assertJ
     }
 
@@ -44,11 +57,11 @@ class WorldTest {
             OOOO
             OOOO
         """.trimIndent())
-        var world = World.empty().withPart(1,1,initialPart)
+        var world = World.empty().withPart(GlobalVector2D(1,1),initialPart)
 
-        world = world.step()
+        world = world.step(1, true)
 
-        val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
+        val actualPart = world.getPart(GlobalVector2D(1,1), expectedPart.dimensions)
         Assertions.assertEquals(expectedPart, actualPart)
     }
 
@@ -67,11 +80,11 @@ class WorldTest {
             OXXO
             OOOO
         """.trimIndent())
-        var world = World.empty().withPart(1,1,initialPart)
+        var world = World.empty().withPart(GlobalVector2D(1,1),initialPart)
 
-        world = world.step()
+        world = world.step(1, true)
 
-        val actualPart = world.getPart(1,1, expectedPart.width, expectedPart.height)
+        val actualPart = world.getPart(GlobalVector2D(1,1), expectedPart.dimensions)
         Assertions.assertEquals(expectedPart, actualPart)
     }
 
