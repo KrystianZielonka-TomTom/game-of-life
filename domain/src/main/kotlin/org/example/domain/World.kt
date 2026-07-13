@@ -99,29 +99,30 @@ class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, 
             }
 
             if (!synchronous) {
-            val resultChunks = runBlocking { coroutineScope {
-                            chunksToProcess.map { coords ->
-                                async(Dispatchers.IO) {
-                                    coords to calcNextChunk(newWorld, coords)
-                                }
-                            }.awaitAll()
-                                .filter { it.second != null }
-                                .associate { it.first to it.second!! }
+                val resultChunks = runBlocking { coroutineScope {
+                    chunksToProcess.map { coords ->
+                        async(Dispatchers.Default) {
+                            coords to calcNextChunk(newWorld, coords)
                         }
-                            }
-
-
-                        newWorld = World(HashMap(resultChunks))
-            } else {
-            val resultChunks = HashMap<Pair<Int, Int>, Chunk>()
-
-            for (coords in chunksToProcess) {
-                val c = calcNextChunk(newWorld, coords)
-                if (c != null) {
-                    resultChunks[coords] = c
+                    }.awaitAll()
+                        .filter { it.second != null }
+                        .associate { it.first to it.second!! }
+                }
                 }
 
-            newWorld = World(resultChunks)
+
+                newWorld = World(HashMap(resultChunks))
+            } else {
+                val resultChunks = HashMap<ChunkIndexVector2D, Chunk>()
+
+                for (coords in chunksToProcess) {
+                    val c = calcNextChunk(newWorld, coords)
+                    if (c != null) {
+                        resultChunks[coords] = c
+                    }
+                }
+
+                newWorld = World(resultChunks)
             }
         }
         return newWorld

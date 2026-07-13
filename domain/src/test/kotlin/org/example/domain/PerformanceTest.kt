@@ -8,7 +8,7 @@ class PerformanceTest {
 
     @Test
     fun `measure execution time of synchronous simulation for 1000 steps on 1000x1000 world`() {
-        var world = World.empty().withRandom(0,0, 1000,1000, Random(System.currentTimeMillis()))
+        var world = World.empty().withRandom(GlobalVector2D(0,0), Vector2D(1000,1000), Random(System.currentTimeMillis()))
         val timeTaken = measureTimeMillis {
             world = world.step(1000, true)
         }
@@ -17,7 +17,7 @@ class PerformanceTest {
 
     @Test
     fun `measure execution time of asynchronous simulation for 1000 steps on 1000x1000 world`() {
-        var world = World.empty().withRandom(0,0,1000,1000, Random(System.currentTimeMillis()))
+        var world = World.empty().withRandom(GlobalVector2D(0,0), Vector2D(1000,1000), Random(System.currentTimeMillis()))
         val timeTaken = measureTimeMillis {
             world = world.step(1000)
         }
