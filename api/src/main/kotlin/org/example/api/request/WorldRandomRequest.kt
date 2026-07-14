@@ -10,8 +10,4 @@ data class WorldRandomRequest(
     val initialY: Int,
     @field:Min(1) val initialWidth: Int,
     @field:Min(1) val initialHeight: Int,
-    val requestedX: Int,
-    val requestedY: Int,
-    @field:Min(1) val requestedWidth: Int,
-    @field:Min(1) val requestedHeight: Int
 )

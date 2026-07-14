@@ -6,9 +6,11 @@ import org.example.api.dto.WorldDto
 import org.example.api.mappers.TileMapper
 import org.example.api.request.WorldStepRequest
 import org.example.domain.CellPart
+import org.example.domain.GlobalVector2D
 import org.example.domain.World
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
+import org.hamcrest.Matchers.greaterThan
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,24 +38,17 @@ class WorldControllerTest {
     fun `random world request should return valid CellPartDto`() {
         RestAssured.given()
             .queryParam("steps", 1)
+            .queryParam("seed", 1)
             .queryParam("x", 0)
             .queryParam("y", 0)
-            .queryParam("w", 50)
-            .queryParam("h", 50)
-            .queryParam("reqX", 0)
-            .queryParam("reqY", 0)
-            .queryParam("reqW", 50)
-            .queryParam("reqH", 50)
+            .queryParam("w", 10)
+            .queryParam("h", 10)
         .`when`()
             .get("/world/random")
         .then()
         .statusCode(200)
             .contentType(ContentType.JSON)
-            .body("x", equalTo(0))
-            .body("y", equalTo(0))
-            .body("width", equalTo(50))
-            .body("height", equalTo(50))
-            .body("data", notNullValue())
+            .body("response.tiles.size()", greaterThan(0))
     }
 
     @Test
@@ -66,7 +61,7 @@ class WorldControllerTest {
         """.trimIndent())
         val requestBody = WorldStepRequest(1, WorldDto(
             World.empty()
-                .withPart(1, 1, part)
+                .withPart(GlobalVector2D(1, 1), part)
                 .getTiles()
                 .map { tileMapper.fromTile(it) }))
 
@@ -79,6 +74,6 @@ class WorldControllerTest {
             .then()
             .statusCode(200)
             .contentType(ContentType.JSON)
-            .body("tiles.size()", equalTo(1))
+            .body("response.tiles.size()", equalTo(1))
     }
 }

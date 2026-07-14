@@ -3,6 +3,7 @@ package org.example.cli
 import org.example.domain.GlobalVector2D
 import org.example.domain.Vector2D
 import org.example.domain.World
+import org.example.domain.serializeCells
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 

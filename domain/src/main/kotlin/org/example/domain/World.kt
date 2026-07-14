@@ -10,6 +10,8 @@ import kotlin.random.Random
 class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, Chunk> = HashMap()) {
 
     companion object {
+        private val emptyWorld = World()
+
         internal fun getChunkIndex(global: GlobalVector2D): ChunkIndexVector2D {
             return ChunkIndexVector2D(Math.floorDiv(global.x, Chunk.WIDTH), Math.floorDiv(global.y, Chunk.WIDTH))
         }
@@ -23,7 +25,7 @@ class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, 
         }
 
         fun empty(): World {
-            return World()
+            return emptyWorld
         }
 
         private fun from(chunks: HashMap<ChunkIndexVector2D, Chunk>): World {
@@ -31,8 +33,7 @@ class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, 
         }
 
         fun fromRandom(global: GlobalVector2D, dimensions: Vector2D, random: Random): World {
-            //allocation that doesn't achieve anything at World()
-            return World().withRandom(global, dimensions, random)
+            return World.empty().withRandom(global, dimensions, random)
         }
 
         fun fromTiles(tiles: List<Tile>): World {
@@ -48,14 +49,19 @@ class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, 
             val midChunk = world.chunks[chunkIndex]
             var hasAlive = false
 
-            //TODO improve checking efficiency
             for (x in 0 until Chunk.WIDTH) {
                 for (y in 0 until Chunk.WIDTH) {
                     val local = ChunkLocalVector2D(x, y)
-
                     val alive = midChunk?.getState(local) ?: false
-                    val global = getGlobalCoords(local, chunkIndex)
-                    val neighbours = world.getGlobalNeighboursCount(global)
+
+                    var neighbours = 0;
+                    if (!Chunk.isOnBorder(local)) {
+                       neighbours = midChunk?.getLocalNeighboursCount(local) ?: 0
+                    } else {
+                        val global = getGlobalCoords(local, chunkIndex)
+                        neighbours = world.getGlobalNeighboursCount(global)
+                    }
+
                     val next = nextState(alive, neighbours)
                     if (next) {
                         newChunk.setCell(local, true)
@@ -68,18 +74,19 @@ class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, 
 
         private fun nextState(state: Boolean, neighbourCount: Int): Boolean {
             //TODO this can probably be just a single boolean expression without if statements
-            if(state) {
-                // Rule 1 - underpopulation
-                return if (neighbourCount < 2) false
-                // Rule 2 - lives
-                else if (neighbourCount in 2..3) true
-                // Rule 3 - overpopulation
-                else false
-            } else if (neighbourCount == 3) {
-                // Rule 4 - reproduction
-                return true
-            }
-            return false
+            return neighbourCount == 3 || (state && neighbourCount == 2)
+//            if(state) {
+//                // Rule 1 - underpopulation
+//                return if (neighbourCount < 2) false
+//                // Rule 2 - lives
+//                else if (neighbourCount in 2..3) true
+//                // Rule 3 - overpopulation
+//                else false
+//            } else if (neighbourCount == 3) {
+//                // Rule 4 - reproduction
+//                return true
+//            }
+//            return false
         }
     }
 
@@ -155,8 +162,8 @@ class World private constructor(private val chunks: HashMap<ChunkIndexVector2D, 
 
     fun withRandom(global: GlobalVector2D, dimensions: Vector2D, random: Random): World {
         val newChunks: HashMap<ChunkIndexVector2D, Chunk> = HashMap()
-        for (py in 0 until dimensions.x) {
-            for (px in 0 until dimensions.y) {
+        for (py in 0 until dimensions.y) {
+            for (px in 0 until dimensions.x) {
                 val nGlobal = GlobalVector2D(global.x + px, global.y + py)
 
                 val local = getLocalCords(nGlobal)
